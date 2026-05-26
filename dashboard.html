@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Morsh Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --card: #1a1a26;
+      --border: #2a2a3d;
+      --accent: #7c6aff;
+      --accent2: #ff6a9a;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --danger: #ff4f4f;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans Arabic', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body::before { content: ''; position: fixed; top: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(124,106,255,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+
+    /* Header */
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .logo-text h1 { font-size: 1.3rem; font-weight: 700; }
+    .logo-text p { font-size: 0.75rem; color: var(--muted); }
+    .add-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: white; padding: 10px 20px; border-radius: 10px; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.2s; white-space: nowrap; }
+    .add-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* Search bar */
+    .search-wrap { position: relative; margin-bottom: 1.2rem; }
+    .search-wrap input { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: inherit; font-size: 0.88rem; padding: 11px 44px 11px 16px; outline: none; transition: border-color 0.2s; }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+    .clear-search { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; display: none; padding: 2px; }
+    .clear-search.visible { display: block; }
+
+    /* Filters */
+    .filters { display: flex; gap: 8px; margin-bottom: 1.8rem; flex-wrap: wrap; }
+    .filter-btn { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 7px 16px; border-radius: 8px; font-family: inherit; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .filter-btn.active, .filter-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(124,106,255,0.1); }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem; position: relative; overflow: hidden; transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s; animation: fadeUp 0.4s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .card:hover { transform: translateY(-4px); border-color: var(--platform-color, var(--accent)); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .card::before { content: ''; position: absolute; top: 0; right: 0; width: 3px; height: 100%; background: var(--platform-color, var(--accent)); border-radius: 0 16px 16px 0; }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .platform-info { display: flex; align-items: center; gap: 10px; }
+    .platform-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .platform-name { font-size: 0.72rem; color: var(--platform-color, var(--muted)); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .account-name { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+    .card-actions { display: flex; gap: 6px; }
+    .icon-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .icon-btn.edit:hover { color: var(--accent); border-color: var(--accent); }
+    .icon-btn.delete:hover { color: var(--danger); border-color: var(--danger); }
+    .description { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 14px; min-height: 36px; }
+    .open-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .open-btn:hover { background: var(--platform-color, var(--accent)); border-color: transparent; color: white; }
+
+    /* Empty / loading */
+    .empty { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text); }
+    .loading { grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--muted); }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 12px 24px; border-radius: 12px; font-size: 0.85rem; transition: transform 0.3s; z-index: 200; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; width: 90%; max-width: 460px; transform: translateY(20px); transition: transform 0.25s; max-height: 90vh; overflow-y: auto; }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal h2 { font-size: 1.2rem; margin-bottom: 1.5rem; }
+    label { display: block; font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    input, select, textarea { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: inherit; font-size: 0.88rem; padding: 10px 14px; margin-bottom: 14px; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 70px; }
+    select option { background: var(--card); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-family: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s; }
+    .btn-cancel { background: var(--card); color: var(--muted); }
+    .btn-save { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+
+    /* Confirm Dialog */
+    .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 150; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .confirm-overlay.open { opacity: 1; pointer-events: all; }
+    .confirm-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; width: 90%; max-width: 360px; text-align: center; transform: scale(0.95); transition: transform 0.2s; }
+    .confirm-overlay.open .confirm-box { transform: scale(1); }
+    .confirm-box .confirm-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .confirm-box h3 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+    .confirm-box p { font-size: 0.84rem; color: var(--muted); margin-bottom: 1.5rem; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-actions button { flex: 1; padding: 10px; border-radius: 10px; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; }
+    .btn-confirm-cancel { background: var(--card); color: var(--muted); }
+    .btn-confirm-delete { background: var(--danger); color: white; }
+
+    /* Count badge */
+    .count-badge { background: rgba(124,106,255,0.15); color: var(--accent); font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-right: 8px; }
+
+    /* Results info */
+    .results-info { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; }
+    .results-info span { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <h1>Morsh Hub</h1>
+        <p>كل حساباتك في مكان واحد</p>
+      </div>
+    </div>
+    <button class="add-btn" onclick="openModal()">+ إضافة مصدر</button>
+  </header>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="ابحث عن مصدر..." oninput="onSearch()" />
+    <button class="clear-search" id="clear-btn" onclick="clearSearch()">×</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterCards('all', this)">الكل <span class="count-badge" id="count-all">0</span></button>
+    <button class="filter-btn" onclick="filterCards('twitter', this)">تويتر</button>
+    <button class="filter-btn" onclick="filterCards('instagram', this)">انستقرام</button>
+    <button class="filter-btn" onclick="filterCards('youtube', this)">يوتيوب</button>
+    <button class="filter-btn" onclick="filterCards('reddit', this)">ريديت</button>
+    <button class="filter-btn" onclick="filterCards('tiktok', this)">تيك توك</button>
+    <button class="filter-btn" onclick="filterCards('telegram', this)">تيليغرام</button>
+    <button class="filter-btn" onclick="filterCards('snapchat', this)">سناب شات</button>
+    <button class="filter-btn" onclick="filterCards('other', this)">أخرى</button>
+  </div>
+
+  <div class="results-info" id="results-info" style="display:none"></div>
+  <div class="grid" id="grid"><div class="loading"><div class="spinner"></div>جاري التحميل...</div></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">➕ إضافة مصدر جديد</h2>
+    <label>المنصة</label>
+    <select id="m-platform">
+      <option value="twitter">🐦 تويتر / X</option>
+      <option value="instagram">📸 انستقرام</option>
+      <option value="youtube">▶️ يوتيوب</option>
+      <option value="reddit">🔴 ريديت</option>
+      <option value="tiktok">🎵 تيك توك</option>
+      <option value="telegram">✈️ تيليغرام</option>
+      <option value="snapchat">👻 سناب شات</option>
+      <option value="other">🌐 أخرى</option>
+    </select>
+    <label>اسم الحساب أو القناة</label>
+    <input id="m-name" type="text" placeholder="مثال: @elonmusk" />
+    <label>رابط الصفحة</label>
+    <input id="m-url" type="url" placeholder="https://..." />
+    <label>وصف قصير (اختياري)</label>
+    <textarea id="m-desc" placeholder="وصف هذا الحساب..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">إلغاء</button>
+      <button class="btn-save" id="save-btn" onclick="saveCard()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Dialog -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <h3>حذف المصدر؟</h3>
+    <p>هل أنت متأكد أنك تريد حذف هذا المصدر؟ لا يمكن التراجع عن هذا الإجراء.</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">إلغاء</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()">حذف</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PLATFORMS = {
+    twitter:   { label: 'تويتر / X',  icon: '🐦', color: '#1da1f2' },
+    instagram: { label: 'انستقرام',   icon: '📸', color: '#e1306c' },
+    youtube:   { label: 'يوتيوب',     icon: '▶️', color: '#ff0000' },
+    reddit:    { label: 'ريديت',      icon: '🔴', color: '#ff4500' },
+    tiktok:    { label: 'تيك توك',    icon: '🎵', color: '#69c9d0' },
+    telegram:  { label: 'تيليغرام',   icon: '✈️', color: '#2ca5e0' },
+    snapchat:  { label: 'سناب شات',   icon: '👻', color: '#FFFC00' },
+    other:     { label: 'أخرى',       icon: '🌐', color: '#7c6aff' },
+  };
+
+  let allCards = [];
+  let currentFilter = 'all';
+  let searchQuery = '';
+  let editingId = null;
+  let pendingDeleteId = null;
+
+  // ── Local Storage ──────────────────────────────────
+  const STORAGE_KEY = 'morsh_dashboard_cards';
+
+  function saveLocal() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards));
+  }
+
+  function loadLocal() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      allCards = data ? JSON.parse(data) : [];
+    } catch(e) {
+      allCards = [];
+    }
+    render();
+  }
+
+  // ── Toast ──────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ── Render ─────────────────────────────────────────
+  function getFiltered() {
+    let cards = currentFilter === 'all' ? allCards : allCards.filter(c => c.platform === currentFilter);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      cards = cards.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        (c.desc || '').toLowerCase().includes(q) ||
+        PLATFORMS[c.platform]?.label.includes(q)
+      );
+    }
+    return cards;
+  }
+
+  function render() {
+    const grid = document.getElementById('grid');
+    const filtered = getFiltered();
+    document.getElementById('count-all').textContent = allCards.length;
+
+    // Results info
+    const info = document.getElementById('results-info');
+    if (searchQuery) {
+      info.style.display = 'block';
+      info.innerHTML = `تم العثور على <span>${filtered.length}</span> نتيجة لـ "<span>${searchQuery}</span>"`;
+    } else {
+      info.style.display = 'none';
+    }
+
+    if (filtered.length === 0) {
+      const msg = searchQuery ? 'لا توجد نتائج مطابقة' : 'لا يوجد مصادر';
+      const sub = searchQuery ? 'جرب كلمة بحث مختلفة' : 'اضغط "+ إضافة مصدر"';
+      grid.innerHTML = `<div class="empty"><div class="empty-icon">${searchQuery ? '🔎' : '📭'}</div><h3>${msg}</h3><p>${sub}</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map((c, i) => {
+      const p = PLATFORMS[c.platform] || PLATFORMS.other;
+      const safeUrl = c.url.startsWith('http') ? c.url : '#';
+      return `<div class="card" style="--platform-color:${p.color}; animation-delay:${i*0.05}s">
+        <div class="card-top">
+          <div class="platform-info">
+            <div class="platform-icon">${p.icon}</div>
+            <div>
+              <div class="platform-name">${p.label}</div>
+              <div class="account-name">${escHtml(c.name)}</div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="icon-btn edit" onclick="openEdit('${c.id}')" title="تعديل">✏️</button>
+            <button class="icon-btn delete" onclick="askDelete('${c.id}')" title="حذف">🗑</button>
+          </div>
+        </div>
+        <div class="description">${escHtml(c.desc || 'لا يوجد وصف')}</div>
+        <a class="open-btn" href="${safeUrl}" target="_blank" rel="noopener noreferrer">فتح الحساب ↗</a>
+      </div>`;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Filter & Search ────────────────────────────────
+  function filterCards(platform, btn) {
+    currentFilter = platform;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  function onSearch() {
+    searchQuery = document.getElementById('search-input').value.trim();
+    document.getElementById('clear-btn').classList.toggle('visible', searchQuery.length > 0);
+    render();
+  }
+
+  function clearSearch() {
+    document.getElementById('search-input').value = '';
+    searchQuery = '';
+    document.getElementById('clear-btn').classList.remove('visible');
+    render();
+  }
+
+  // ── Modal (Add / Edit) ─────────────────────────────
+  function openModal() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = '➕ إضافة مصدر جديد';
+    document.getElementById('save-btn').textContent = 'حفظ';
+    ['m-name','m-url','m-desc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('m-platform').value = 'twitter';
+    document.getElementById('modal').classList.add('open');
+    setTimeout(() => document.getElementById('m-name').focus(), 300);
+  }
+
+  function openEdit(id) {
+    const card = allCards.find(c => c.id === id);
+    if (!card) return;
+    editingId = id;
+    document.getElementById('modal-title').textContent = '✏️ تعديل المصدر';
+    document.getElementById('save-btn').textContent = 'تحديث';
+    document.getElementById('m-platform').value = card.platform;
+    document.getElementById('m-name').value = card.name;
+    document.getElementById('m-url').value = card.url;
+    document.getElementById('m-desc').value = card.desc || '';
+    document.getElementById('modal').classList.add('open');
+    setTimeout(() => document.getElementById('m-name').focus(), 300);
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    editingId = null;
+  }
+
+  function saveCard() {
+    const name = document.getElementById('m-name').value.trim();
+    const url  = document.getElementById('m-url').value.trim();
+    const desc = document.getElementById('m-desc').value.trim();
+    const platform = document.getElementById('m-platform').value;
+    if (!name) { showToast('⚠️ يرجى إدخال اسم الحساب'); return; }
+    if (!url)  { showToast('⚠️ يرجى إدخال رابط الصفحة'); return; }
+    if (!url.startsWith('http')) { showToast('⚠️ يجب أن يبدأ الرابط بـ http أو https'); return; }
+
+    if (editingId) {
+      const idx = allCards.findIndex(c => c.id === editingId);
+      if (idx !== -1) allCards[idx] = { ...allCards[idx], platform, name, url, desc };
+      showToast('✅ تم التحديث بنجاح');
+    } else {
+      allCards.push({ id: Date.now().toString(), platform, name, url, desc });
+      showToast('✅ تمت الإضافة بنجاح');
+    }
+    closeModal();
+    saveLocal();
+    render();
+  }
+
+  // ── Delete Confirm ─────────────────────────────────
+  function askDelete(id) {
+    pendingDeleteId = id;
+    document.getElementById('confirm-overlay').classList.add('open');
+  }
+
+  function closeConfirm() {
+    pendingDeleteId = null;
+    document.getElementById('confirm-overlay').classList.remove('open');
+  }
+
+  function confirmDelete() {
+    if (!pendingDeleteId) return;
+    allCards = allCards.filter(c => c.id !== pendingDeleteId);
+    closeConfirm();
+    saveLocal();
+    render();
+    showToast('✅ تم الحذف بنجاح');
+  }
+
+  // ── Keyboard shortcuts ─────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+  });
+
+  // Close modals on overlay click
+  document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+  document.getElementById('confirm-overlay').addEventListener('click', function(e) { if (e.target === this) closeConfirm(); });
+
+  // ── Init ──────────────────────────────────────────
+  loadLocal();
+</script>
+</body>
+</html>
